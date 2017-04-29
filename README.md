@@ -1,18 +1,24 @@
 # Algo VPN
 
+[![TravisCI Status](https://api.travis-ci.org/trailofbits/algo.svg?branch=master)](https://travis-ci.org/trailofbits/algo)
 [![Slack Status](https://empireslacking.herokuapp.com/badge.svg)](https://empireslacking.herokuapp.com)
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/fold_left.svg?style=social&label=Follow%20%40AlgoVPN)](https://twitter.com/AlgoVPN)
+[![Flattr](https://button.flattr.com/flattr-badge-large.png)](https://flattr.com/submit/auto?fid=kxw60j&url=https%3A%2F%2Fgithub.com%2Ftrailofbits%2Falgo)
+[![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CYZZD39GXUJ3E)
+[![Patreon](https://img.shields.io/badge/back_on-patreon-red.svg)](https://www.patreon.com/algovpn)
+[![Bountysource](https://img.shields.io/bountysource/team/trailofbits/activity.svg)](https://www.bountysource.com/teams/trailofbits)
 
-Algo VPN (short for "Al Gore", the **V**ice **P**resident of **N**etworks everywhere for [inventing the Internet](https://www.youtube.com/watch?v=BnFJ8cHAlco)) is a set of Ansible scripts that simplifies the setup of a personal IPSEC VPN. It contains the most secure defaults available, works with common cloud providers, and does not require client software on most devices.
+Algo VPN is a set of Ansible scripts that simplify the setup of a personal IPSEC VPN. It uses the most secure defaults available, works with common cloud providers, and does not require client software on most devices. See our [release announcement](https://blog.trailofbits.com/2016/12/12/meet-algo-the-vpn-that-works/) for more information.
 
 ## Features
 
-* Supports only IKEv2 w/ a single cipher suite: AES-GCM, HMAC-SHA2, and P-256 DH
-* Generates Apple Profiles to auto-configure iOS and macOS devices
-* Provides helper scripts to add and remove users
-* Blocks ads with a local DNS resolver and HTTP proxy (optional)
+* Supports only IKEv2 with strong crypto: AES-GCM, SHA2, and P-256
+* Generates Apple profiles to auto-configure iOS and macOS devices
+* Includes a helper script to add and remove users
+* Blocks ads with a local DNS resolver (optional)
 * Sets up limited SSH users for tunneling traffic (optional)
 * Based on current versions of Ubuntu and strongSwan
-* Installs to DigitalOcean, Amazon EC2, Google Cloud Engine, Microsoft Azure or your own server
+* Installs to DigitalOcean, Amazon EC2, Microsoft Azure, Google Compute Engine, or your own server
 
 ## Anti-features
 
@@ -25,100 +31,222 @@ Algo VPN (short for "Al Gore", the **V**ice **P**resident of **N**etworks everyw
 
 ## Deploy the Algo Server
 
-The easiest way to get an Algo server running is to let it setup a _new_ virtual machine in the cloud for you.
+The easiest way to get an Algo server running is to let it set up a _new_ virtual machine in the cloud for you.
 
-1. Install the dependencies for your operating system:
+1. **Setup an account on a cloud hosting provider.** Algo supports [DigitalOcean](https://m.do.co/c/4d7f4ff9cfe4) (most user friendly), [Amazon EC2](https://aws.amazon.com/), [Google Compute Engine](https://cloud.google.com/compute/), and [Microsoft Azure](https://azure.microsoft.com/).
 
- OS X: `sudo easy_install pip && sudo pip install --ignore-install -r requirements.txt`
- 
- Linux (deb-based): `sudo easy_install pip && sudo apt-get update && sudo apt-get install build-essential libssl-dev libffi-dev python-dev && sudo pip install -r requirements.txt`
+2. [Download Algo](https://github.com/trailofbits/algo/archive/master.zip) and unzip it in a convenient location on your local machine.
 
- Linux (rpm-based): See the [Pre-Install Documentation for RedHat/CentOS 6.x](docs/pre-install_redhat_centos_6.x.md)
+3. Install Algo's core dependencies. Open the Terminal. The `python` interpreter you use to deploy Algo must be python2. If you don't know what this means, you're probably fine. `cd` into the `algo-master` directory where you unzipped Algo, then run:
 
-2. Open the file `config.cfg` in your favorite text editor. Specify the users you wish to create in the `users` list.
-3. Start the deploy and follow the instructions: `./algo`
+    - macOS:
+      ```bash
+      $ python -m ensurepip --user
+      $ python -m pip install --user --upgrade virtualenv
+      ```
+    - Linux (deb-based):
+      ```bash
+      $ sudo apt-get update && sudo apt-get install \
+          build-essential \
+          libssl-dev \
+          libffi-dev \
+          python-dev \
+          python-pip \
+          python-setuptools \
+          python-virtualenv -y
+      ```
+     - Linux (rpm-based): See the [Pre-Install Documentation for RedHat/CentOS 6.x](docs/setup-redhat-centos6.md)
+     - Windows: See the [Windows documentation](docs/client-windows.md)
 
-That's it! You now have an Algo VPN server on the internet.
+4. Install Algo's remaining dependencies for your operating system. Use the same terminal window as the previous step and run:
+    ```bash
+    $ python -m virtualenv env && source env/bin/activate && python -m pip install -U pip && python -m pip install -r requirements.txt
+    ```
+    On macOS, you may be prompted to install `cc`. You should press accept if so.
 
-Note: for local or scripted deployment instructions see the [Advanced Usage](/docs/ADVANCED.md) documentation.
+5. Open `config.cfg` in your favorite text editor. Specify the users you wish to create in the `users` list.
+
+6. Start the deployment. Return to your terminal. In the Algo directory, run `./algo` and follow the instructions. There are several optional features available. None are required for a fully functional VPN server. These optional features are described in greater detail in [deploy-from-ansible.md](docs/deploy-from-ansible.md).
+
+That's it! You will get the message below when the server deployment process completes. You now have an Algo server on the internet. Take note of the p12 (user certificate) password in case you need it later.
+
+You can now setup clients to connect it, e.g. your iPhone or laptop. Proceed to [Configure the VPN Clients](#configure-the-vpn-clients) below.
+
+```
+        "\"#----------------------------------------------------------------------#\"",
+        "\"#                          Congratulations!                            #\"",
+        "\"#                     Your Algo server is running.                     #\"",
+        "\"#    Config files and certificates are in the ./configs/ directory.    #\"",
+        "\"#              Go to https://whoer.net/ after connecting               #\"",
+        "\"#        and ensure that all your traffic passes through the VPN.      #\"",
+        "\"#                    Local DNS resolver 172.16.0.1                     #\"",
+        "\"#                The p12 and SSH keys password is XXXXXXXX             #\"",
+        "\"#----------------------------------------------------------------------#\"",
+```
+
+Advanced users who want to install Algo on top of a server they already own or want to script the deployment of Algo onto a network of servers, please see the [Deploy to Ubuntu](/docs/deploy-to-ubuntu.md) documentation.
 
 ## Configure the VPN Clients
 
-Certificates and configuration files that users will need are placed in the `configs` directory. Make sure to secure these files since many contain private keys. All files are prefixed with the IP address of the Algo VPN server.
+Distribute the configuration files to your users, so they can connect to the VPN.  Certificates and configuration files that users will need are placed in the `configs` directory. Make sure to secure these files since many contain private keys. All files are saved under a subdirectory named with the IP address of your new Algo VPN server.
 
 ### Apple Devices
 
-Find the corresponding mobileconfig (Apple Profile) for each user and send it to them over AirDrop (or other secure means). Apple Configuration Profiles are all-in-one configuration files for iOS and macOS devices and installing a profile will fully configure the VPN.
+Find the corresponding mobileconfig (Apple Profile) for each user and send it to them over AirDrop or other secure means. Apple Configuration Profiles are all-in-one configuration files for iOS and macOS devices. On macOS, double-clicking a profile to install it will fully configure the VPN. On iOS, users are prompted to install the profile as soon as the AirDrop is accepted.
+
+On iOS, you can connect to the VPN by opening Settings and clicking the toggle next to "VPN" near the top of the list. On macOS, you can connect to the VPN by opening System Preferences -> Network, finding Algo VPN in the left column and clicking "Connect." On macOS, we recommend checking "Show VPN status in menu bar" too which lets you connect and disconnect from the menu bar.
+
+If you enabled "On Demand", the VPN will connect automatically whenever it is able. On iOS, you can turn off "On Demand" by clicking the (i) next to the entry for Algo VPN and toggling off "Connect On Demand." On macOS, you can turn off "On Demand" by opening the Network Preferences, finding Algo VPN in the left column, and unchecking the box for "Connect on demand."
 
 ### Android Devices
 
-You need to install the [StrongSwan VPN Client for Android 4 and newer](https://play.google.com/store/apps/details?id=org.strongswan.android). Import the corresponding user.p12 certificate to your device. It's very simple to configure the StrongSwan VPN Client, just make a new profile with the IP address of your VPN server and choose which certificate to use.
+You need to install the [strongSwan VPN Client for Android 4 and newer](https://play.google.com/store/apps/details?id=org.strongswan.android) because no version of Android supports IKEv2. Import the corresponding user.p12 certificate to your device. See the [Android setup instructions](/docs/client-android.md) for more detailed steps.
 
 ### Windows
 
-Copy the CA certificate, user certificate, and the user PowerShell script to the client computer. Import the CA certificate to the local machine Trusted Root certificate store. Then, run the included PowerShell script to import the user certificate, set up a VPN connection, and activate stronger ciphers on it.
+Windows clients have a more complicated setup than most others. Follow the steps below to set one up:
+
+1. Copy the CA certificate (`cacert.pem`), user certificate (`$user.p12`), and the user PowerShell script (`windows_$user.ps1`) to the client computer.
+2. Import the CA certificate to the local machine Trusted Root certificate store.
+3. Open PowerShell as Administrator. Navigate to your copied files.
+4. If you haven't already, you will need to change the Execution Policy to allow unsigned scripts to run.
+
+```powershell
+Set-ExecutionPolicy Unrestricted -Scope CurrentUser
+```
+
+5. In the same PowerShell window, run the included PowerShell script to import the user certificate, set up a VPN connection, and activate stronger ciphers on it.
+6. After you execute the user script, set the Execution Policy back before you close the PowerShell window.
+
+```powershell
+Set-ExecutionPolicy Restricted -Scope CurrentUser
+```
+
+Your VPN is now installed and ready to use.
 
 If you want to perform these steps by hand, you will need to import the user certificate to the Personal certificate store, add an IKEv2 connection in the network settings, then activate stronger ciphers on it via the following PowerShell script:
 
-`Set-VpnConnectionIPsecConfiguration -ConnectionName "Algo" -AuthenticationTransformConstants SHA25612
-8 -CipherTransformConstants AES256 -EncryptionMethod AES256 -IntegrityCheckMethod SHA256 -DHGroup Group14 -PfsGroup none`
+```powershell
+Set-VpnConnectionIPsecConfiguration -ConnectionName "Algo" -AuthenticationTransformConstants GCMAES128 -CipherTransformConstants GCMAES128 -EncryptionMethod AES128 -IntegrityCheckMethod SHA384 -DHGroup ECP256 -PfsGroup ECP256
+```
 
-### Linux strongSwan Clients (e.g., OpenWRT, Ubuntu, etc.)
+### Linux Network Manager Clients (e.g., Ubuntu, Debian, or Fedora Desktop)
 
-Install strongSwan, then copy the included user_ipsec.conf, user_ipsec.secrets, user.crt (user certificate), and user.key (private key) files to your client device. These may require some customization based on your exact use case. These files were originally generated with a point-to-point OpenWRT-based VPN in mind.
+Network Manager does not support AES-GCM. In order to support Linux Desktop clients, please choose the "compatible" cryptography and use at least Network Manager 1.4.1. See [Issue #263](https://github.com/trailofbits/algo/issues/263) for more information.
+
+### Linux strongSwan Clients (e.g., OpenWRT, Ubuntu Server, etc.)
+
+Install strongSwan, then copy the included ipsec_user.conf, ipsec_user.secrets, user.crt (user certificate), and user.key (private key) files to your client device. These will require customization based on your exact use case. These files were originally generated with a point-to-point OpenWRT-based VPN in mind.
+
+#### Ubuntu Server 16.04 example
+
+1. `sudo apt-get install strongswan strongswan-plugin-openssl`: install strongSwan
+2. `/etc/ipsec.d/certs`: copy `user.crt` from `algo-master/configs/<name>/pki/certs`
+3. `/etc/ipsec.d/private`: copy `user.key` from `algo-master/configs/<name>/pki/private`
+4. `/etc/ipsec.d/cacerts`: copy `cacert.pem` from `algo-master/configs/<name>/cacert.pem`
+5. `/etc/ipsec.secrets`: add your `user.key` to the list, e.g. `xx.xxx.xx.xxx : ECDSA user.key`
+6. `/etc/ipsec.conf`: add the connection from `ipsec_user.conf` and update `leftcert` to match the `user.crt` filename
+7. `sudo ipsec restart`: pick up config changes
+8. `sudo ipsec up <conn-name>`: start the ipsec tunnel
+9. `sudo ipsec down <conn-name>`: shutdown the ipsec tunnel
+
+One common use case is to let your server access your local LAN without going through the VPN. Set up a passthrough connection by adding the following to `/etc/ipsec.conf`. Replace `192.168.1.1/24` with the subnet your LAN uses:
+
+    conn lan-passthrough
+    leftsubnet=192.168.1.1/24
+    rightsubnet=192.168.1.1/24
+    authby=never # No authentication necessary
+    type=pass # passthrough
+    auto=route # no need to ipsec up lan-passthrough
 
 ### Other Devices
 
 Depending on the platform, you may need one or multiple of the following files.
 
-* ca.crt: CA Certificate
-* user_ipsec.conf: StrongSwan client configuration
-* user_ipsec.secrets: StrongSwan client configuration
-* user.crt: User Certificate
-* user.key: User Private Key
+* cacert.pem: CA Certificate
 * user.mobileconfig: Apple Profile
 * user.p12: User Certificate and Private Key (in PKCS#12 format)
-* user_windows.ps1: Powershell script to setup a VPN connection on Windows
+* user.sswan: Android strongSwan Profile
+* ipsec_user.conf: strongSwan client configuration
+* ipsec_user.secrets: strongSwan client configuration
+* windows_user.ps1: Powershell script to help setup a VPN connection on Windows
 
 ## Setup an SSH Tunnel
 
-If you turned on the optional SSH tunneling role, then local user accounts will be created for each user in `config.cfg` and an SSH authorized_key files for them will be in the `configs` directory (user.ssh.pem). SSH user accounts do not have shell access and their tunneling options are limited (`ssh -N` is required). This is done to ensure that users have the least access required to tunnel through the server. 
+If you turned on the optional SSH tunneling role, then local user accounts will be created for each user in `config.cfg` and an SSH authorized_key files for them will be in the `configs` directory (user.ssh.pem). SSH user accounts do not have shell access, cannot authenticate with a password, and only have limited tunneling options (e.g., `ssh -N` is required). This is done to ensure that SSH users have the least access required to tunnel through the server and can perform no other actions.
 
-Use the command below to start an SSH tunnel, replacing `ip` and `user` with your own. Once the tunnel is setup, you can configure a browser or other application to use 127.0.0.1:1080 as a SOCKS proxy to route traffic through Algo.
+Use the example command below to start an SSH tunnel by replacing `user` and `ip` with your own. Once the tunnel is setup, you can configure a browser or other application to use 127.0.0.1:1080 as a SOCKS proxy to route traffic through the Algo server.
 
- `ssh -D 127.0.0.1:1080 -f -q -C -N user@ip -i configs/ip_user.ssh.pem`  
+ `ssh -D 127.0.0.1:1080 -f -q -C -N user@ip -i configs/ip_user.ssh.pem`
+
+## SSH into Algo Server
+
+To SSH into the Algo server for administrative purposes you can use the example command below by replacing `ip` with your own:
+
+ `ssh ubuntu@ip -i ~/.ssh/algo.pem`
+
+If you find yourself regularly logging into Algo then it will be useful to load your Algo ssh key automatically.  Add the following snippet to the bottom of `~/.bash_profile` to add it to your shell environment permanently.
+
+ `ssh-add ~/.ssh/algo > /dev/null 2>&1`
+
 
 ## Adding or Removing Users
 
 Algo's own scripts can easily add and remove users from the VPN server.
 
 1. Update the `users` list in your `config.cfg`
-2. Run the command: `./algo update-users`
+2. Open a terminal, `cd` to the algo directory, and activate the virtual environment with `source env/bin/activate`
+3. Run the command: `./algo update-users`
 
 The Algo VPN server now contains only the users listed in the `config.cfg` file.
 
-## FAQ
+## Additional Documentation
 
-### Has Algo been audited?
+* Setup instructions
+  - Documentation for available [Ansible roles](docs/setup-roles.md)
+  - Deploy from [RedHat/CentOS 6.x](docs/deploy-from-redhat-centos6.md)
+  - Deploy from [Windows](docs/deploy-from-windows.md)
+  - Deploy from [Ansible](docs/deploy-from-ansible.md) directly
+* Client setup
+  - Setup [Android](docs/client-android.md) clients
+  - Setup [Generic/Linux](docs/client-linux.md) clients with Ansible
+* Cloud setup
+  - Configure [Azure](docs/cloud-azure.md)
+* Advanced Deployment
+  - Deploy to your own [FreeBSD](docs/deploy-to-freebsd.md) server
+  - Deploy to your own [Ubuntu 16.04](docs/deploy-to-ubuntu.md) server
+  - Deploy to an [unsupported cloud provider](docs/deploy-to-unsupported-cloud.md)
+* [FAQ](docs/faq.md)
+* [Troubleshooting](docs/troubleshooting.md)
 
-No. This project is under active development. We're happy to [accept and fix issues](https://github.com/trailofbits/algo/issues) as they are identified. Use Algo at your own risk. If you find a security issue of any severity, please [contact us on Slack](https://empireslacking.herokuapp.com).
+## Endorsements
 
-### Why aren't you using Tor?
+> I've been ranting about the sorry state of VPN svcs for so long, probably about
+> time to give a proper talk on the subject. TL;DR: use Algo.
 
-The goal of this project is not to provide anonymity, but to ensure confidentiality of network traffic while traveling. Tor introduces new risks that are unsuitable for Algo's intended users. Namely, with Algo, users are in control over the gateway routing their traffic. With Tor, users are at the mercy of [actively](https://www.securityweek2016.tu-darmstadt.de/fileadmin/user_upload/Group_securityweek2016/pets2016/10_honions-sanatinia.pdf) [malicious](https://chloe.re/2015/06/20/a-month-with-badonions/) [exit](https://community.fireeye.com/people/archit.mehta/blog/2014/11/18/onionduke-apt-malware-distributed-via-malicious-tor-exit-node) [nodes](https://www.wired.com/2010/06/wikileaks-documents/).
+-- [Kenn White](https://twitter.com/kennwhite/status/814166603587788800)
 
-### Why aren't you using Racoon, LibreSwan, or OpenSwan?
+> Before picking a VPN provider/app, make sure you do some research
+> https://research.csiro.au/ng/wp-content/uploads/sites/106/2016/08/paper-1.pdf ... – or consider Algo
 
-Racoon does not support IKEv2. Racoon2 supports IKEv2 but is not actively maintained. When we looked, the documentation for StrongSwan was better than the corresponding documentation for LibreSwan or OpenSwan. StrongSwan also has the benefit of a from-scratch rewrite to support IKEv2. I consider such rewrites a positive step when supporting a major new protocol version.
+-- [The Register](https://twitter.com/TheRegister/status/825076303657177088)
 
-### Why aren't you using a memory-safe or verified IKE daemon?
+> Algo is really easy and secure.
 
-I would, but I don't know of any [suitable ones](https://github.com/trailofbits/algo/issues/68). If you're in the position to fund the development of such a project, [contact us](mailto:info@trailofbits.com). We would be interested in leading such an effort. At the very least, I plan to make modifications to StrongSwan and the environment it's deployed in that prevent or significantly complicate exploitation of any latent issues.
+-- [the grugq](https://twitter.com/thegrugq/status/786249040228786176)
 
-### Why aren't you using OpenVPN?
+> I played around with Algo VPN, a set of scripts that let you set up a VPN in the cloud in very little time, even if you don’t know much about development. I’ve got to say that I was quite impressed with Trail of Bits’ approach.
 
-OpenVPN does not have out-of-the-box client support on any major desktop or mobile operating system. This introduces user experience issues and requires the user to [update](https://www.exploit-db.com/exploits/34037/) and [maintain](https://www.exploit-db.com/exploits/20485/) the software themselves. OpenVPN depends on the security of [TLS](https://tools.ietf.org/html/rfc7457), both the [protocol](http://arstechnica.com/security/2016/08/new-attack-can-pluck-secrets-from-1-of-https-traffic-affects-top-sites/) and its [implementations](http://arstechnica.com/security/2014/04/confirmed-nasty-heartbleed-bug-exposes-openvpn-private-keys-too/), and we simply trust the server less due to [past](https://sweet32.info/) [security](https://github.com/ValdikSS/openvpn-fix-dns-leak-plugin/blob/master/README.md) [incidents](https://www.exploit-db.com/exploits/34879/).
+-- [Romain Dillet](https://twitter.com/romaindillet/status/851037243728965632) for [TechCrunch](https://techcrunch.com/2017/04/09/how-i-made-my-own-vpn-server-in-15-minutes/)
 
-### Why aren't you using Alpine Linux, OpenBSD, or HardenedBSD?
+> If you’re uncomfortable shelling out the cash to an anonymous, random VPN provider, this is the best solution.
 
-Alpine Linux is not supported out-of-the-box by any major cloud provider. We are interested in supporting Free-, Open-, and HardenedBSD. Follow along or contribute to our BSD support in [this issue](https://github.com/trailofbits/algo/issues/35).
+-- [Thorin Klosowski](https://twitter.com/kingthor) for [Lifehacker](http://lifehacker.com/how-to-set-up-your-own-completely-free-vpn-in-the-cloud-1794302432)
+
+## Support Algo VPN
+
+All donations support continued development. Thanks!
+
+* We accept donations via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CYZZD39GXUJ3E), [Patreon](https://www.patreon.com/algovpn), and [Flattr](https://flattr.com/submit/auto?fid=kxw60j&url=https%3A%2F%2Fgithub.com%2Ftrailofbits%2Falgo).
+* Use our [referral code](https://m.do.co/c/4d7f4ff9cfe4) when you sign up to Digital Ocean for a $10 credit.
+* We also accept and appreciate contributions of new code and bugfixes via Github Pull Requests.

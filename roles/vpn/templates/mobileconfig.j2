@@ -12,8 +12,8 @@
                 <integer>1</integer>
               <key>OnDemandRules</key>
               <array>
-{% if OnDemandEnabled_WIFI_ECXLUDE is defined and OnDemandEnabled_WIFI_ECXLUDE != '_null' %}
-{% set WIFI_ECXLUDE_LIST = OnDemandEnabled_WIFI_ECXLUDE.split(',') %}
+{% if OnDemandEnabled_WIFI_EXCLUDE is defined and OnDemandEnabled_WIFI_EXCLUDE != '_null' %}
+{% set WIFI_EXCLUDE_LIST = OnDemandEnabled_WIFI_EXCLUDE.split(',') %}
                   <dict>
                       <key>Action</key>
                       <string>Disconnect</string>
@@ -21,8 +21,8 @@
                       <string>WiFi</string>
                       <key>SSIDMatch</key>
                       <array>
-{% for network_name in WIFI_ECXLUDE_LIST %}
-                          <string>{{ network_name }}</string>
+{% for network_name in WIFI_EXCLUDE_LIST %}
+                          <string>{{ network_name|e }}</string>
 {% endfor %}
                       </array>
                   </dict>
@@ -37,6 +37,8 @@
 {% endif %}
                     <key>InterfaceTypeMatch</key>
                       <string>WiFi</string>
+                    <key>URLStringProbe</key>
+                      <string>http://captive.apple.com/hotspot-detect.html</string>
                   </dict>
                   <dict>
                     <key>Action</key>
@@ -47,6 +49,8 @@
 {% endif %}
                     <key>InterfaceTypeMatch</key>
                       <string>Cellular</string>
+                    <key>URLStringProbe</key>
+                      <string>http://captive.apple.com/hotspot-detect.html</string>
                   </dict>
                 </array>
 {% else %}
@@ -60,16 +64,16 @@
                     <key>EncryptionAlgorithm</key>
                     <string>AES-128-GCM</string>
                     <key>IntegrityAlgorithm</key>
-                    <string>SHA2-256</string>
+                    <string>SHA2-512</string>
                     <key>LifeTimeInMinutes</key>
-                    <integer>1440</integer>
+                    <integer>20</integer>
                 </dict>
                 <key>DeadPeerDetectionRate</key>
                 <string>Medium</string>
                 <key>DisableMOBIKE</key>
                 <integer>0</integer>
                 <key>DisableRedirect</key>
-                <integer>0</integer>
+                <integer>1</integer>
                 <key>EnableCertificateRevocationCheck</key>
                 <integer>0</integer>
                 <key>EnablePFS</key>
@@ -81,22 +85,18 @@
                     <key>EncryptionAlgorithm</key>
                     <string>AES-128-GCM</string>
                     <key>IntegrityAlgorithm</key>
-                    <string>SHA2-256</string>
+                    <string>SHA2-512</string>
                     <key>LifeTimeInMinutes</key>
-                    <integer>1440</integer>
+                    <integer>20</integer>
                 </dict>
                 <key>LocalIdentifier</key>
                 <string>{{ item.0 }}</string>
                 <key>PayloadCertificateUUID</key>
                 <string>{{ pkcs12_PayloadCertificateUUID }}</string>
                 <key>CertificateType</key>
-{% if Win10_Enabled is defined and Win10_Enabled == "Y" %}
-                <string>RSA2048</string>
-{% else %}
                 <string>ECDSA256</string>
-{% endif %}
                 <key>ServerCertificateIssuerCommonName</key>
-                <string>{{ IP_subject_alt_name }}</string>                
+                <string>{{ IP_subject_alt_name }}</string>
                 <key>RemoteAddress</key>
                 <string>{{ IP_subject_alt_name }}</string>
                 <key>RemoteIdentifier</key>
@@ -172,7 +172,7 @@
             <string>ca.crt</string>
             <key>PayloadContent</key>
             <data>
-            {{ PayloadContentCA.stdout }}
+            {{ PayloadContentCA }}
             </data>
             <key>PayloadDescription</key>
             <string>Adds a CA root certificate</string>
