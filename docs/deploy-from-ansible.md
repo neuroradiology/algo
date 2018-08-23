@@ -51,6 +51,12 @@ Required variables:
 - server_user
 - IP_subject_alt_name
 
+Note that by default, the iptables rules on your existing server will be overwritten. If you don't want to overwrite the iptables rules, you can use the `--skip-tags iptables` flag, for example:
+
+```shell
+ansible-playbook deploy.yml -t local,vpn --skip-tags iptables -e 'server_ip=172.217.2.238 server_user=algo IP_subject_alt_name=172.217.2.238'
+```
+
 ### Digital Ocean
 
 Required variables:
@@ -81,7 +87,6 @@ Required variables:
 - aws_access_key
 - aws_secret_key
 - aws_server_name
-- ssh_public_key
 - region
 
 Possible options for `region`:
@@ -126,8 +131,8 @@ Additional tags:
             "Effect": "Allow",
             "Action": [
                 "cloudformation:CreateStack",
+                "cloudformation:UpdateStack",
                 "cloudformation:DescribeStacks",
-                "cloudformation:CreateStacks",
                 "cloudformation:DescribeStackEvents",
                 "cloudformation:ListStackResources"
             ],
@@ -157,7 +162,9 @@ Additional tags:
                 "ec2:DescribeSecurityGroups",
                 "ec2:AuthorizeSecurityGroupIngress",
                 "ec2:RunInstances",
-                "ec2:DescribeInstances"
+                "ec2:DescribeInstances",
+                "ec2:AllocateAddress",
+                "ec2:DescribeAddresses"
             ],
             "Resource": [
                 "*"
@@ -172,22 +179,45 @@ Additional tags:
 Required variables:
 
 - credentials_file
-- server_name
+- gce_server_name
 - ssh_public_key
 - zone
 
 Possible options for `zone`:
 
+- us-west1-a
+- us-west1-b
+- us-west1-c
 - us-central1-a
 - us-central1-b
 - us-central1-c
 - us-central1-f
+- us-east4-a
+- us-east4-b
+- us-east4-c
 - us-east1-b
 - us-east1-c
 - us-east1-d
+- europe-north1-a
+- europe-north1-b
+- europe-north1-c
 - europe-west1-b
 - europe-west1-c
 - europe-west1-d
+- europe-west2-a
+- europe-west2-b
+- europe-west2-c
+- europe-west3-a
+- europe-west3-b
+- europe-west3-c
+- asia-southeast1-a
+- asia-southeast1-b
 - asia-east1-a
 - asia-east1-b
 - asia-east1-c
+- asia-northeast1-a
+- asia-northeast1-b
+- asia-northeast1-c
+- australia-southeast1-a
+- australia-southeast1-b
+- australia-southeast1-c

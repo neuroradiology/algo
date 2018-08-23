@@ -8,6 +8,8 @@
      * [Error: "ansible-playbook: command not found"](#error-ansible-playbook-command-not-found)
      * [Bad owner or permissions on .ssh](#bad-owner-or-permissions-on-ssh)
      * [The region you want is not available](#the-region-you-want-is-not-available)
+	 * [AWS: SSH permission denied with an ECDSA key](#aws-ssh-permission-denied-with-an-ecdsa-key)
+	 * [AWS: "Deploy the template" fails with CREATE_FAILED](#aws-deploy-the-template-fails-with-create_failed)
   * [Connection Problems](#connection-problems)
      * [I'm blocked or get CAPTCHAs when I access certain websites](#im-blocked-or-get-captchas-when-i-access-certain-websites)
      * [I want to change the list of trusted Wifi networks on my Apple device](#i-want-to-change-the-list-of-trusted-wifi-networks-on-my-apple-device)
@@ -16,6 +18,7 @@
      * [I can't get my router to connect to the Algo server](#i-cant-get-my-router-to-connect-to-the-algo-server)
      * [I can't get Network Manager to connect to the Algo server](#i-cant-get-network-manager-to-connect-to-the-algo-server)
      * [Various websites appear to be offline through the VPN](#various-websites-appear-to-be-offline-through-the-vpn)
+     * [Clients appear stuck in a reconnection loop](#clients-appear-stuck-in-a-reconnection-loop)
      * ["Error 809" or IKE_AUTH requests that never make it to the server](#error-809-or-ike_auth-requests-that-never-make-it-to-the-server)
   * [I have a problem not covered here](#i-have-a-problem-not-covered-here)
 
@@ -61,7 +64,7 @@ checking for gcc... gcc
 checking whether the C compiler works... no
 configure: error: in '/private/var/folders/3f/q33hl6_x6_nfyjg29fcl9qdr0000gp/T/pip-build-DB5VZp/pycrypto': configure: error: C compiler cannot create executables See config.log for more details
 Traceback (most recent call last):
-File "", line 1, in 
+File "", line 1, in
 ...
 cmd_obj.run()
 File "/private/var/folders/3f/q33hl6_x6_nfyjg29fcl9qdr0000gp/T/pip-build-DB5VZp/pycrypto/setup.py", line 278, in run
@@ -73,7 +76,7 @@ You don't have a working compiler installed. You should install the XCode compil
 
 ### Error: "fatal error: 'openssl/opensslv.h' file not found"
 
-On macOS, you tried to install pycrypto and encountered the following error:
+On macOS, you tried to install `cryptography` and encountered the following error:
 
 ```
 build/temp.macosx-10.12-intel-2.7/_openssl.c:434:10: fatal error: 'openssl/opensslv.h' file not found
@@ -92,7 +95,7 @@ Command /usr/bin/python -c "import setuptools, tokenize;__file__='/private/tmp/p
 Storing debug log for failure in /Users/algore/Library/Logs/pip.log
 ```
 
-You are running an old version of `pip` that cannot build the `pycrypto` dependency. Upgrade to a new version of `pip` by running `sudo pip install -U pip`. 
+You are running an old version of `pip` that cannot download the binary `cryptography` dependency. Upgrade to a new version of `pip` by running `sudo pip install -U pip`.
 
 ### Error: "TypeError: must be str, not bytes"
 
@@ -126,6 +129,39 @@ You need to reset the permissions on your `.ssh` directory. Run `chmod 700 /home
 
 You want to install Algo to a specific region in a cloud provider, but that region is not available in the list given by the installer. In that case, you should [file an issue](https://github.com/trailofbits/algo/issues/new). Cloud providers add new regions on a regular basis and we don't always keep up. File an issue and give us information about what region is missing and we'll add it.
 
+### AWS: SSH permission denied with an ECDSA key
+
+You tried to deploy Algo to AWS and you received an error like this one:
+
+```
+TASK [Copy the algo ssh key to the local ssh directory] ************************
+ok: [localhost -> localhost]
+
+PLAY [Configure the server and install required software] **********************
+
+TASK [Check the system] ********************************************************
+fatal: [X.X.X.X]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: Warning: Permanently added 'X.X.X.X' (ECDSA) to the list of known hosts.\r\nPermission denied (publickey).\r\n", "unreachable": true}
+```
+
+You previously deployed Algo to a hosting provider other than AWS, and Algo created an ECDSA keypair at that time. You are now deploying to AWS which [does not support ECDSA keys](https://aws.amazon.com/certificate-manager/faqs/) via their API. As a result, the deploy has failed.
+
+In order to fix this issue, delete the `algo.pem` and `algo.pem.pub` keys from your `configs` directory and run the deploy again. If AWS is selected, Algo will now generate new RSA ssh keys which are compatible with the AWS API.
+
+### AWS: "Deploy the template fails" with CREATE_FAILED
+
+You tried to deploy to Algo to AWS and you received an error like this one:
+
+```
+TASK [cloud-ec2 : Make a cloudformation template] ******************************
+changed: [localhost]
+
+TASK [cloud-ec2 : Deploy the template] *****************************************
+fatal: [localhost]: FAILED! => {"changed": true, "events": ["StackEvent AWS::CloudFormation::Stack algopvpn1 ROLLBACK_COMPLETE", "StackEvent AWS::EC2::VPC VPC DELETE_COMPLETE", "StackEvent AWS::EC2::InternetGateway InternetGateway DELETE_COMPLETE", "StackEvent AWS::CloudFormation::Stack algopvpn1 ROLLBACK_IN_PROGRESS", "StackEvent AWS::EC2::VPC VPC CREATE_FAILED", "StackEvent AWS::EC2::VPC VPC CREATE_IN_PROGRESS", "StackEvent AWS::EC2::InternetGateway InternetGateway CREATE_FAILED", "StackEvent AWS::EC2::InternetGateway InternetGateway CREATE_IN_PROGRESS", "StackEvent AWS::CloudFormation::Stack algopvpn1 CREATE_IN_PROGRESS"], "failed": true, "output": "Problem with CREATE. Rollback complete", "stack_outputs": {}, "stack_resources": [{"last_updated_time": null, "logical_resource_id": "InternetGateway", "physical_resource_id": null, "resource_type": "AWS::EC2::InternetGateway", "status": "DELETE_COMPLETE", "status_reason": null}, {"last_updated_time": null, "logical_resource_id": "VPC", "physical_resource_id": null, "resource_type": "AWS::EC2::VPC", "status": "DELETE_COMPLETE", "status_reason": null}]}
+```
+
+Algo builds a [Cloudformation](https://aws.amazon.com/cloudformation/) template to deploy to AWS. You can find the entire contents of the Cloudformation template in `configs/algo.yml`. In order to troubleshoot this issue, login to the AWS console, go to the Cloudformation service, find the failed deployment, click the events tab, and find the corresponding "CREATE_FAILED" events. Note that all AWS resources created by Algo are tagged with `Environment => Algo` for easy identification.
+
+In many cases, failed deployments are the result of [service limits](http://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html) being reached, such as "CREATE_FAILED	AWS::EC2::VPC	VPC	The maximum number of VPCs has been reached." In these cases, you must either [delete the VPCs from previous deployments](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/working-with-vpcs.html#VPC_Deleting), or [contact AWS support](https://console.aws.amazon.com/support/home?region=us-east-1#/case/create?issueType=service-limit-increase&limitType=service-code-direct-connect) to increase the limits on your account.
 
 ## Connection Problems
 
@@ -161,9 +197,11 @@ You're trying to connect Ubuntu or Debian to the Algo server through the Network
 
 ### Various websites appear to be offline through the VPN
 
-This issue appears intermittently due to issues with MTU size. If you experience this issue, we recommend [filing an issue](https://github.com/trailofbits/algo/issues/new) for assistance. Advanced users can troubleshoot the correct MTU size by retrying `ping` with the "don't fragment" bit set, then decreasing packet size until it works. This will determine the correct MTU size for your network, which you then need to update on your network adapter.
+This issue appears intermittently due to issues with MTU size. Different networks may require the MTU within a specific range to correctly pass traffic. We made an effort to set the MTU to the most conservative, most compatible size by default but problems may still occur.
 
-E.g., On Linux (client -- Ubuntu 16.04), connect to your IPsec tunnel then use the following commands to determine the correct MTU size:
+Advanced users can troubleshoot the correct MTU size by retrying `ping` with the "don't fragment" bit set, then decreasing packet size until it works. This will determine the correct MTU size for your network, which you then need to update on your network adapter.
+
+E.g., On Linux (client -- Ubuntu 18.04), connect to your IPsec tunnel then use the following commands to determine the correct MTU size:
 ```
 $ ping -M do -s 1500 www.google.com
 PING www.google.com (74.125.22.147) 1500(1528) bytes of data.
@@ -174,12 +212,51 @@ Then, set the MTU size on your network adapter (wlan0 or eth0):
 $ sudo ifconfig wlan0 mtu 1438
 ```
 
+You can also set the `max_mss` variable to a new value in config.cfg, and then redeploy your server rather than reconfigure the current one in-place.
+
+### Clients appear stuck in a reconnection loop
+
+If you're using 'Connect on Demand' on iOS and your client device appears stuck in a reconnection loop after switching from WiFi to LTE or vice versa, you may want to try disabling DoS protection in strongSwan.
+
+The configuration value can be found in `/etc/strongswan.d/charon.conf`. After making the change you must reload or restart ipsec.
+
+Example command:
+```
+sed -i -e 's/#*.dos_protection = yes/dos_protection = no/' /etc/strongswan.d/charon.conf && ipsec restart
+```
+
 ### "Error 809" or IKE_AUTH requests that never make it to the server
 
 On Windows, this issue may manifest with an error message that says "The network connection between your computer and the VPN server could not be established because the remote server is not responding... This is Error 809." On other operating systems, you may try to debug the issue by capturing packets with tcpdump and notice that, while IKE_SA_INIT request and responses are exchanged between the client and server, IKE_AUTH requests never make it to the server.
 
 It is possible that the IKE_AUTH payload is too big to fit in a single IP datagram, and so is fragmented. Many consumer routers and cable modems ship with a feature that blocks "fragmented IP packets." Try logging into your router and disabling any firewall settings related to blocking or dropping fragmented IP packets. For more information, see [Issue #305](https://github.com/trailofbits/algo/issues/305).
 
+### Error: name 'basestring' is not defined
+
+```
+TASK [cloud-digitalocean : Creating a droplet...] *******************************************
+An exception occurred during task execution. To see the full traceback, use -vvv. The error was: NameError: name 'basestring' is not defined
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "name 'basestring' is not defined"}
+```
+
+If you get something like the above it's likely you're not using a python2 virtualenv.
+
+Ensure running `python2.7` drops you into a python 2 shell (it looks something like this)
+
+```
+user@homebook ~ $ python2.7
+Python 2.7.10 (default, Feb  7 2017, 00:08:15)
+[GCC 4.2.1 Compatible Apple LLVM 8.0.0 (clang-800.0.34)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+>>>
+```
+
+Then rerun the dependency installation explicitly using python 2.7
+
+```
+python2.7 -m virtualenv --python=`which python2.7` env && source env/bin/activate && python2.7 -m pip install -U pip && python2.7 -m pip install -r requirements.txt
+```
+
 ## I have a problem not covered here
 
-If you have an issue that you cannot solve with the guidance here, [file an issue](https://github.com/trailofbits/algo/issues/new) that describes the problem and we'll do our best to help you. You can also [join our Slack](https://empireslacking.herokuapp.com/) and ask for help in the **#algo-support** channel.
+If you have an issue that you cannot solve with the guidance here, [join our Gitter](https://gitter.im/trailofbits/algo) and ask for help. If you think you found a new issue in Algo, [file an issue](https://github.com/trailofbits/algo/issues/new).

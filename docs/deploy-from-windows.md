@@ -22,13 +22,21 @@ The subsystem will be installed, then Windows will require a reboot. Reboot, the
 Install additional packages:
 
 ```shell
-sudo apt-get update && sudo apt-get install python-pip python-setuptools build-essential libssl-dev libffi-dev python-dev python-virtualenv git -y
+sudo apt-get update && sudo apt-get install \
+    git \
+    build-essential \
+    libssl-dev \
+    libffi-dev \
+    python-dev \
+    python-pip \
+    python-setuptools \
+    python-virtualenv -y
 ```
 
 Clone the Algo repository:
 
 ```shell
-git clone https://github.com/trailofbits/algo && cd algo
+cd ~ && git clone https://github.com/trailofbits/algo && cd algo
 ```
 
 Now, you can go through the [README](https://github.com/trailofbits/algo#deploy-the-algo-server) (start from the 4th step) and deploy your Algo server!

@@ -1,60 +1,71 @@
 ---
+- name: Cloud only tasks
+  block:
+  - name: Install software updates
+    apt:
+      update_cache: true
+      install_recommends: true
+      upgrade: dist
 
-- name: Install software updates
-  apt: update_cache=yes upgrade=dist
-  tags:
-    - cloud
+  - name: Upgrade the ca certificates
+    apt:
+      name: ca-certificates
+      state: latest
 
-- name: Check if reboot is required
-  shell: >
-    if [[ -e /var/run/reboot-required ]]; then echo "required"; else echo "no"; fi
-  args:
-    executable: /bin/bash
-  register: reboot_required
-  tags:
-    - cloud
+  - name: Check if reboot is required
+    shell: >
+      if [[ -e /var/run/reboot-required ]]; then echo "required"; else echo "no"; fi
+    args:
+      executable: /bin/bash
+    register: reboot_required
 
-- name: Reboot
-  shell: sleep 2 && shutdown -r now "Ansible updates triggered"
-  async: 1
-  poll: 0
-  when: reboot_required is defined and reboot_required.stdout == 'required'
-  ignore_errors: true
-  tags:
-    - cloud
+  - name: Reboot
+    shell: sleep 2 && shutdown -r now "Ansible updates triggered"
+    async: 1
+    poll: 0
+    when: reboot_required is defined and reboot_required.stdout == 'required'
+    ignore_errors: true
 
-- name: Wait until SSH becomes ready...
-  local_action:
-    module: wait_for
-    port: 22
-    host: "{{ inventory_hostname }}"
-    search_regex: OpenSSH
-    delay: 10
-    timeout: 320
-  when: reboot_required is defined and reboot_required.stdout == 'required'
-  become: false
-  tags:
-    - cloud
+  - name: Wait until SSH becomes ready...
+    local_action:
+      module: wait_for
+      port: 22
+      host: "{{ inventory_hostname }}"
+      search_regex: OpenSSH
+      delay: 10
+      timeout: 320
+    when: reboot_required is defined and reboot_required.stdout == 'required'
+    become: false
 
-- name: Disable MOTD on login and SSHD
-  replace: dest="{{ item.file }}" regexp="{{ item.regexp }}" replace="{{ item.line }}"
-  with_items:
-    - { regexp: '^session.*optional.*pam_motd.so.*', line: '# MOTD DISABLED', file: '/etc/pam.d/login' }
-    - { regexp: '^session.*optional.*pam_motd.so.*', line: '# MOTD DISABLED', file: '/etc/pam.d/sshd' }
+  - name: Include unatteded upgrades configuration
+    include_tasks: unattended-upgrades.yml
+
+  - name: Disable MOTD on login and SSHD
+    replace: dest="{{ item.file }}" regexp="{{ item.regexp }}" replace="{{ item.line }}"
+    with_items:
+      - { regexp: '^session.*optional.*pam_motd.so.*', line: '# MOTD DISABLED', file: '/etc/pam.d/login' }
+      - { regexp: '^session.*optional.*pam_motd.so.*', line: '# MOTD DISABLED', file: '/etc/pam.d/sshd' }
   tags:
     - cloud
 
 - name: Loopback for services configured
-  template: src=10-loopback-services.cfg.j2 dest=/etc/network/interfaces.d/10-loopback-services.cfg
+  template:
+    src: 10-algo-lo100.network.j2
+    dest: /etc/systemd/network/10-algo-lo100.network
   notify:
-    - restart loopback
+    - restart systemd-networkd
   tags:
     - always
 
-- name: Loopback included into the network config
-  lineinfile: dest=/etc/network/interfaces line='source /etc/network/interfaces.d/10-loopback-services.cfg' state=present
-  notify:
-    - restart loopback
+- name: systemd services enabled and started
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+  with_items:
+    - systemd-networkd
+    - systemd-resolved
   tags:
     - always
 
@@ -78,10 +89,9 @@
       - apparmor-utils
       - uuid-runtime
       - coreutils
-      - sendmail
       - iptables-persistent
       - cgroup-tools
-      - openssl
+      - "openssl{% if install_headers|default(true)|bool %},linux-headers-{{ ansible_kernel }}{% endif %}"
     sysctl:
       - item: net.ipv4.ip_forward
         value: 1

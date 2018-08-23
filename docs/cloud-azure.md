@@ -12,8 +12,8 @@
 | 8. Go to the **Main menu**, **Azure Active Directory** and click on **Properties**. Copy and save somewhere the **Directory ID**  | [![step8-thumb]][step8-screen]  |
 | 9. Go to the **Main menu**, **Subscriptions** and click on the subscription you want you use in Algo. Copy and save the subscription id from the **Overview** tab | [![step9-thumb]][step9-screen]  |
 | 10. Go to the **Access control (IAM)** tab and click to **Add** | [![step10-thumb]][step10-screen]  |
-| 11. Select a role (Contributor will enough for all)| [![step11-thumb]][step11-screen] |
-| 12. Swith next to **Add users** and search by the **App name** (the name from the 4th step) and select it. | [![step12-thumb]][step12-screen]  |
+| 11. Select a role (Contributor will be sufficient)| [![step11-thumb]][step11-screen] |
+| 12. Next, switch to **Add users** and search by the **App name** (the name from the 4th step) and select it. | [![step12-thumb]][step12-screen]  |
 
 Now you can use Environment Variables:
 
@@ -45,14 +45,14 @@ or just pass those values to the Algo script
 [step11-screen]: http://i.imgur.com/NUJ6k7i.jpg
 [step12-screen]: http://i.imgur.com/VZv5qwb.jpg
 
-[step2-thumb]: http://i.imgur.com/ENvSupEm.png
-[step3-thumb]: http://i.imgur.com/sPLQaQem.jpg
-[step4-thumb]: http://i.imgur.com/di3xFCMm.jpg
-[step5-thumb]: http://i.imgur.com/SipQyRAm.jpg
-[step6-thumb]: http://i.imgur.com/RRTqV7Cm.jpg
-[step7-thumb]: http://i.imgur.com/ZnqJeVvm.jpg
-[step8-thumb]: http://i.imgur.com/WAS8Ovlm.png
-[step9-thumb]: http://i.imgur.com/IvTN7o1m.jpg
-[step10-thumb]: http://i.imgur.com/j6dgo75m.png
-[step11-thumb]: http://i.imgur.com/NUJ6k7im.jpg
-[step12-thumb]: http://i.imgur.com/VZv5qwbm.jpg
+[step2-thumb]: https://i.imgur.com/ENvSupEm.png
+[step3-thumb]: https://i.imgur.com/sPLQaQem.jpg
+[step4-thumb]: https://i.imgur.com/di3xFCMm.jpg
+[step5-thumb]: https://i.imgur.com/SipQyRAm.jpg
+[step6-thumb]: https://i.imgur.com/RRTqV7Cm.jpg
+[step7-thumb]: https://i.imgur.com/ZnqJeVvm.jpg
+[step8-thumb]: https://i.imgur.com/WAS8Ovlm.png
+[step9-thumb]: https://i.imgur.com/IvTN7o1m.jpg
+[step10-thumb]: https://i.imgur.com/j6dgo75m.png
+[step11-thumb]: https://i.imgur.com/NUJ6k7im.jpg
+[step12-thumb]: https://i.imgur.com/VZv5qwbm.jpg
