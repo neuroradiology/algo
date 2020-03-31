@@ -6,7 +6,7 @@ Creating an Amazon AWS account requires giving Amazon a phone number that can re
 
 ### Select an EC2 plan
 
-The cheapest EC2 plan you can choose is the "Free Plan" a.k.a. the "AWS Free Tier." It is only available to new AWS customers, it has limits on usage, and is converts to standard pricing after 12 months (the "introductory period"). After you exceed the usage limits, after the 12 month period, or if you are an existing AWS customer, then you will pay standard pay-as-you-go service prices.
+The cheapest EC2 plan you can choose is the "Free Plan" a.k.a. the "AWS Free Tier." It is only available to new AWS customers, it has limits on usage, and it converts to standard pricing after 12 months (the "introductory period"). After you exceed the usage limits, after the 12 month period, or if you are an existing AWS customer, then you will pay standard pay-as-you-go service prices.
 
 *Note*: Your Algo instance will not stop working when you hit the bandwidth limit, you will just start accumulating service charges on your AWS account.
 
@@ -22,7 +22,7 @@ Here, you have the policy editor. Switch to the JSON tab and copy-paste over the
 
 ### Set up an AWS user
 
-In the AWS console, find the users (“Identiy and Access Management”, a.k.a. IAM users) menu: click Services > IAM.
+In the AWS console, find the users (“Identity and Access Management”, a.k.a. IAM users) menu: click Services > IAM.
 
 Activate multi-factor authentication (MFA) on your root account. The simplest choice is the mobile app "Google Authenticator." A hardware U2F token is ideal (less prone to a phishing attack), but a TOTP authenticator like this is good enough.
 
@@ -89,26 +89,31 @@ Name the vpn server:
 After entering the server name, the script ask which region you wish to setup your new Algo instance in. Enter the number  next to name of the region.
 
 ```
-  What region should the server be located in?
-    1.   us-east-1           US East (N. Virginia)
-    2.   us-east-2           US East (Ohio)
-    3.   us-west-1           US West (N. California)
-    4.   us-west-2           US West (Oregon)
-    5.   ca-central-1        Canada (Central)
-    6.   eu-central-1        EU (Frankfurt)
-    7.   eu-west-1           EU (Ireland)
-    8.   eu-west-2           EU (London)
-    9.   eu-west-3           EU (Paris)
-    10.  ap-northeast-1      Asia Pacific (Tokyo)
-    11.  ap-northeast-2      Asia Pacific (Seoul)
-    12.  ap-northeast-3      Asia Pacific (Osaka-Local)
-    13.  ap-southeast-1      Asia Pacific (Singapore)
-    14.  ap-southeast-2      Asia Pacific (Sydney)
-    15.  ap-south-1          Asia Pacific (Mumbai)
-    16.  sa-east-1           South America (São Paulo)
-
-Enter the number of your desired region:
-[1]: 10
+What region should the server be located in?
+(https://docs.aws.amazon.com/general/latest/gr/rande.html#ec2_region)
+    1. ap-northeast-1
+    2. ap-northeast-2
+    3. ap-south-1
+    4. ap-southeast-1
+    5. ap-southeast-2
+    6. ca-central-1
+    7. eu-central-1
+    8. eu-north-1
+    9. eu-west-1
+    10. eu-west-2
+    11. eu-west-3
+    12. sa-east-1
+    13. us-east-1
+    14. us-east-2
+    15. us-west-1
+    16. us-west-2
+  
+Enter the number of your desired region
+[13]
+:
 ```
 
 You will then be asked the remainder of the standard Algo setup questions.
+
+## Cleanup
+If you've installed Algo onto EC2 multiple times, your AWS account may become cluttered with unused or deleted resources e.g. instances, VPCs, subnets, etc. This may cause future installs to fail. The easiest way to clean up after you're done with a server is to go to "CloudFormation" from the console and delete the CloudFormation stack associated with that server. Please note that unless you've enabled termination protection on your instance, deleting the stack this way will delete your instance without warning, so be sure you are deleting the correct stack.
